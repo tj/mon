@@ -54,3 +54,14 @@ mon -d "node $app/image" -p $pids/image-0.pid
 mon -d "node $app/image" -p $pids/image-1.pid
 mon -d "node $app/image-broker" -p $pids/image-broker.pid
 ```
+
+## Restarting processes
+
+  Restarting a process is simple, `kill(1)` it. For example if your app is written
+  to gracefully exit on __SIGQUIT__ you might want to do:
+  
+    $ kill -s SIGQUIT $(cat /var/run/app-0.pid)
+
+  Or if you just want things done quick and dirty:
+
+    $ kill -s SIGKILL $(cat /var/run/app-0.pid)
