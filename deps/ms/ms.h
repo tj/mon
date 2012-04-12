@@ -32,4 +32,7 @@ string_to_milliseconds(const char *str);
 char *
 milliseconds_to_string(long long ms);
 
+char *
+milliseconds_to_long_string(long long ms);
+
 #endif
