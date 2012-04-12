@@ -65,3 +65,6 @@ mon -d "node $app/image-broker" -p $pids/image-broker.pid
   Or if you just want things done quick and dirty:
 
     $ kill -s SIGKILL $(cat /var/run/app-0.pid)
+
+  `mon(1)` will see that the child died, and re-execute
+  the initial start command.
