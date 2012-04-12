@@ -16,6 +16,7 @@
 #include <sys/time.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
+#include "ms.h"
 
 /*
  * Program version.
@@ -157,19 +158,9 @@ show_status_of(char *pidfile) {
   pid_t pid = atoi(buf);
 
   if (alive(pid)) {
-    char str[256];
-    // seconds
-    if (secs < 60) {
-      snprintf(str, 256, "%ld seconds", secs);
-    // minutes
-    } else if (secs < 3600) {
-      snprintf(str, 256, "%ld minutes", secs / 60);
-    // hours
-    } else {
-      snprintf(str, 256, "%ld hours", secs / 3600);
-    }
-
+    char *str = milliseconds_to_string(secs * 1000);
     printf("\e[90m%d\e[0m : \e[32malive\e[0m : uptime %s\e[m\n", pid, str);
+    free(str);
   } else {
     printf("\e[90m%d\e[0m : \e[31mdead\e[0m\n", pid);
   }
