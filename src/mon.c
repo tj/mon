@@ -158,7 +158,7 @@ show_status_of(char *pidfile) {
   pid_t pid = atoi(buf);
 
   if (alive(pid)) {
-    char *str = milliseconds_to_string(secs * 1000);
+    char *str = milliseconds_to_long_string(secs * 1000);
     printf("\e[90m%d\e[0m : \e[32malive\e[0m : uptime %s\e[m\n", pid, str);
     free(str);
   } else {
