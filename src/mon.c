@@ -271,6 +271,7 @@ main(int argc, char **argv){
   char *pidfile = NULL;
   char *logfile = "mon.log";
   int daemon = 0;
+  int status = 0;
   int sleepsec = 1;
 
   // parse args
@@ -303,9 +304,8 @@ main(int argc, char **argv){
 
     // -S, --status
     if (!strcmp("-S", arg) || !strcmp("--status", arg)) {
-      if (!pidfile) error("--pidfile required");
-      show_status_of(pidfile);
-      exit(0);
+      status = 1;
+      continue;
     }
 
     // -P, --prefix <str>
@@ -327,6 +327,13 @@ main(int argc, char **argv){
     }
 
     cmd = arg;
+  }
+
+  // status
+  if (status) {
+    if (!pidfile) error("--pidfile required");
+    show_status_of(pidfile);
+    exit(0);
   }
 
   // command required
