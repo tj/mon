@@ -217,48 +217,48 @@ daemonize() {
 
 void
 monitor(const char *cmd, int sleepsec, const char *pidfile) {
-exec: {
-  pid = fork();
-  int status;
+  while(1) {
+    pid = fork();
+    int status;
 
-  switch (pid) {
-    case -1:
-      perror("fork()");
-      exit(1);
-    case 0:
-      log_msg("sh -c \"%s\"", cmd);
-      execl("/bin/sh", "sh", "-c", cmd, 0);
-      perror("execl()");
-      exit(1);
-    default:
-      log_msg("pid %d", pid);
+    switch (pid) {
+      case -1:
+        perror("fork()");
+        exit(1);
+      case 0:
+        log_msg("sh -c \"%s\"", cmd);
+        execl("/bin/sh", "sh", "-c", cmd, 0);
+        perror("execl()");
+        exit(1);
+      default:
+        log_msg("pid %d", pid);
 
-      // write pidfile
-      if (pidfile) {
-        log_msg("write pid to %s", pidfile);
-        write_pidfile(pidfile, pid);
-      }
+        // write pidfile
+        if (pidfile) {
+          log_msg("write pid to %s", pidfile);
+          write_pidfile(pidfile, pid);
+        }
 
-      // wait for exit
-      waitpid(pid, &status, 0);
+        // wait for exit
+        waitpid(pid, &status, 0);
 
-      // signalled
-      if (WIFSIGNALED(status)) {
-        log_msg("signal(%s)", strsignal(WTERMSIG(status)));
-        log_msg("sleep(%d)", sleepsec);
-        sleep(sleepsec);
-        goto exec;
-      }
+        // signalled
+        if (WIFSIGNALED(status)) {
+          log_msg("signal(%s)", strsignal(WTERMSIG(status)));
+          log_msg("sleep(%d)", sleepsec);
+          sleep(sleepsec);
+          continue;
+        }
 
-      // check status
-      if (WEXITSTATUS(status)) {
-        log_msg("exit(%d)", WEXITSTATUS(status));
-        log_msg("sleep(%d)", sleepsec);
-        sleep(sleepsec);
-        goto exec;
-      }
+        // check status
+        if (WEXITSTATUS(status)) {
+          log_msg("exit(%d)", WEXITSTATUS(status));
+          log_msg("sleep(%d)", sleepsec);
+          sleep(sleepsec);
+          continue;
+        }
+    }
   }
-}
 }
 
 /*
