@@ -76,7 +76,7 @@ usage() {
  */
 
 void
-error(char *msg) {
+error(const char *msg) {
   fprintf(stderr, "Error: %s\n", msg);
   exit(1);
 }
@@ -106,7 +106,7 @@ graceful_exit(int sig) {
  */
 
 void
-write_pidfile(char *file, pid_t pid) {
+write_pidfile(const char *file, pid_t pid) {
   char buf[32] = {0};
   snprintf(buf, 32, "%d", pid);
   int fd = open(file, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
@@ -120,7 +120,7 @@ write_pidfile(char *file, pid_t pid) {
  */
 
 void
-show_status_of(char *pidfile) {
+show_status_of(const char *pidfile) {
   off_t size;
   struct stat s;
 
@@ -173,7 +173,7 @@ show_status_of(char *pidfile) {
  */
 
 void
-redirect_stdio_to(char *file) {
+redirect_stdio_to(const char *file) {
   int logfd = open(file, O_WRONLY | O_CREAT | O_APPEND, 0755);
   int nullfd = open("/dev/null", O_RDONLY, 0);
 
@@ -212,7 +212,7 @@ daemonize() {
  */
 
 void
-monitor(char *cmd, int sleepsec, char *pidfile) {
+monitor(const char *cmd, int sleepsec, const char *pidfile) {
 exec: {
   pid = fork();
   int status;
