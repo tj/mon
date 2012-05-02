@@ -5,17 +5,18 @@
 // Copyright (c) 2012 TJ Holowaychuk <tj@vision-media.ca>
 //
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
 #include <assert.h>
-#include <string.h>
 #include <fcntl.h>
 #include <signal.h>
-#include <sys/types.h>
-#include <sys/time.h>
-#include <sys/wait.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 #include "ms.h"
 
 /*
@@ -38,14 +39,17 @@ static pid_t pid;
 
 /*
  * Logger.
- */
+ */ 
+void 
+log_msg(const char* fmt, ...) {
+  va_list args;
 
-#define log(fmt, args...) \
-  if (prefix) { \
-    printf("mon : %s : " fmt "\n", prefix, ##args); \
-  } else { \
-    printf("mon : " fmt "\n", ##args); \
-  }
+  va_start(args, fmt);
+  printf(prefix ? "mon : %s : " : "mon : ", prefix);
+  vprintf(fmt,args);
+  printf("\n");
+  va_end(args);
+}
 
 /*
  * Output usage information.
@@ -77,7 +81,7 @@ usage() {
  */
 
 void
-error(char *msg) {
+error(const char *msg) {
   fprintf(stderr, "Error: %s\n", msg);
   exit(1);
 }
@@ -97,7 +101,7 @@ alive(pid_t pid) {
 
 void
 graceful_exit(int sig) {
-  log("shutting down");
+  log_msg("shutting down");
   kill(pid, SIGTERM);
   exit(1);
 }
@@ -107,7 +111,7 @@ graceful_exit(int sig) {
  */
 
 void
-write_pidfile(char *file, pid_t pid) {
+write_pidfile(const char *file, pid_t pid) {
   char buf[32] = {0};
   snprintf(buf, 32, "%d", pid);
   int fd = open(file, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
@@ -121,7 +125,7 @@ write_pidfile(char *file, pid_t pid) {
  */
 
 void
-show_status_of(char *pidfile) {
+show_status_of(const char *pidfile) {
   off_t size;
   struct stat s;
 
@@ -174,7 +178,7 @@ show_status_of(char *pidfile) {
  */
 
 void
-redirect_stdio_to(char *file) {
+redirect_stdio_to(const char *file) {
   int logfd = open(file, O_WRONLY | O_CREAT | O_APPEND, 0755);
   int nullfd = open("/dev/null", O_RDONLY, 0);
 
@@ -213,49 +217,49 @@ daemonize() {
  */
 
 void
-monitor(char *cmd, int sleepsec, char *pidfile) {
-exec: {
-  pid = fork();
-  int status;
+monitor(const char *cmd, int sleepsec, const char *pidfile) {
+  while(1) {
+    pid = fork();
+    int status;
 
-  switch (pid) {
-    case -1:
-      perror("fork()");
-      exit(1);
-    case 0:
-      log("sh -c \"%s\"", cmd);
-      execl("/bin/sh", "sh", "-c", cmd, 0);
-      perror("execl()");
-      exit(1);
-    default:
-      log("pid %d", pid);
+    switch (pid) {
+      case -1:
+        perror("fork()");
+        exit(1);
+      case 0:
+        log_msg("sh -c \"%s\"", cmd);
+        execl("/bin/sh", "sh", "-c", cmd, 0);
+        perror("execl()");
+        exit(1);
+      default:
+        log_msg("pid %d", pid);
 
-      // write pidfile
-      if (pidfile) {
-        log("write pid to %s", pidfile);
-        write_pidfile(pidfile, pid);
-      }
+        // write pidfile
+        if (pidfile) {
+          log_msg("write pid to %s", pidfile);
+          write_pidfile(pidfile, pid);
+        }
 
-      // wait for exit
-      waitpid(pid, &status, 0);
+        // wait for exit
+        waitpid(pid, &status, 0);
 
-      // signalled
-      if (WIFSIGNALED(status)) {
-        log("signal(%s)", strsignal(WTERMSIG(status)));
-        log("sleep(%d)", sleepsec);
-        sleep(sleepsec);
-        goto exec;
-      }
+        // signalled
+        if (WIFSIGNALED(status)) {
+          log_msg("signal(%s)", strsignal(WTERMSIG(status)));
+          log_msg("sleep(%d)", sleepsec);
+          sleep(sleepsec);
+          continue;
+        }
 
-      // check status
-      if (WEXITSTATUS(status)) {
-        log("exit(%d)", WEXITSTATUS(status));
-        log("sleep(%d)", sleepsec);
-        sleep(sleepsec);
-        goto exec;
-      }
+        // check status
+        if (WEXITSTATUS(status)) {
+          log_msg("exit(%d)", WEXITSTATUS(status));
+          log_msg("sleep(%d)", sleepsec);
+          sleep(sleepsec);
+          continue;
+        }
+    }
   }
-}
 }
 
 /*
@@ -269,6 +273,7 @@ main(int argc, char **argv){
   char *mon_pidfile = NULL;
   char *logfile = "mon.log";
   int daemon = 0;
+  int status = 0;
   int sleepsec = 1;
 
   // parse args
@@ -307,9 +312,8 @@ main(int argc, char **argv){
 
     // -S, --status
     if (!strcmp("-S", arg) || !strcmp("--status", arg)) {
-      if (!pidfile) error("--pidfile required");
-      show_status_of(pidfile);
-      exit(0);
+      status = 1;
+      continue;
     }
 
     // -P, --prefix <str>
@@ -337,6 +341,13 @@ main(int argc, char **argv){
     }
 
     cmd = arg;
+  }
+
+  // status
+  if (status) {
+    if (!pidfile) error("--pidfile required");
+    show_status_of(pidfile);
+    exit(0);
   }
 
   // command required
