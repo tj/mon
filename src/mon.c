@@ -330,6 +330,12 @@ main(int argc, char **argv){
       exit(0);
     }
 
+    // unrecognized
+    if ('-' == arg[0]) {
+      fprintf(stderr, "Error: unrecognized flag %s\n", arg);
+      exit(1);
+    }
+
     cmd = arg;
   }
 
