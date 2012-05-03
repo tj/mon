@@ -22,7 +22,7 @@
  * Program version.
  */
 
-#define VERSION "0.0.1"
+#define VERSION "0.0.2"
 
 /*
  * Log prefix.
@@ -59,14 +59,15 @@ usage() {
     "\n"
     "  Options:\n"
     "\n"
-    "    -s, --sleep <sec>    sleep seconds before re-executing [1]\n"
-    "    -S, --status         check status of --pidfile\n"
-    "    -l, --log <file>     specify logfile [mon.log]\n"
-    "    -d, --daemonize      daemonize the program\n"
-    "    -p, --pidfile <path> write pid to <path>\n"
-    "    -P, --prefix <str>   add a log prefix <str>\n"
-    "    -v, --version        output program version\n"
-    "    -h, --help           output help information\n"
+    "    -s, --sleep <sec>        sleep seconds before re-executing [1]\n"
+    "    -S, --status             check status of --pidfile\n"
+    "    -l, --log <file>         specify logfile [mon.log]\n"
+    "    -d, --daemonize          daemonize the program\n"
+    "    -p, --pidfile <path>     write pid to <path>\n"
+    "    -m, --mon-pidfile <path> write mon(1) pid to <path>\n"
+    "    -P, --prefix <str>       add a log prefix <str>\n"
+    "    -v, --version            output program version\n"
+    "    -h, --help               output help information\n"
     "\n"
   );
 }
@@ -265,6 +266,7 @@ int
 main(int argc, char **argv){
   char *cmd = NULL;
   char *pidfile = NULL;
+  char *mon_pidfile = NULL;
   char *logfile = "mon.log";
   int daemon = 0;
   int sleepsec = 1;
@@ -297,6 +299,12 @@ main(int argc, char **argv){
       continue;
     }
 
+    // -m, --mon-pidfile <path>
+    if (!strcmp("-m", arg) || !strcmp("--mon-pidfile", arg)) {
+      mon_pidfile = argv[++i];
+      continue;
+    }
+
     // -S, --status
     if (!strcmp("-S", arg) || !strcmp("--status", arg)) {
       if (!pidfile) error("--pidfile required");
@@ -322,6 +330,12 @@ main(int argc, char **argv){
       exit(0);
     }
 
+    // unrecognized
+    if ('-' == arg[0]) {
+      fprintf(stderr, "Error: unrecognized flag %s\n", arg);
+      exit(1);
+    }
+
     cmd = arg;
   }
 
@@ -336,6 +350,12 @@ main(int argc, char **argv){
   if (daemon) {
     daemonize();
     redirect_stdio_to(logfile);
+  }
+
+  // write mon pidfile
+  if (mon_pidfile) {
+    log("write mon pid to %s", mon_pidfile);
+    write_pidfile(mon_pidfile, getpid());
   }
 
   monitor(cmd, sleepsec, pidfile);
