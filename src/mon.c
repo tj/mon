@@ -16,6 +16,7 @@
 #include <sys/time.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
+#include "commander.h"
 #include "ms.h"
 
 /*
@@ -28,13 +29,25 @@
  * Log prefix.
  */
 
-static char *prefix = NULL;
+static const char *prefix = NULL;
 
 /*
  * Child process PID.
  */
 
 static pid_t pid;
+
+/*
+ * Monitor.
+ */
+
+typedef struct {
+  const char *pidfile;
+  const char *mon_pidfile;
+  const char *logfile;
+  int daemon;
+  int sleepsec;
+} monitor_t;
 
 /*
  * Logger.
@@ -46,31 +59,6 @@ static pid_t pid;
   } else { \
     printf("mon : " fmt "\n", ##args); \
   }
-
-/*
- * Output usage information.
- */
-
-void
-usage() {
-  printf(
-    "\n"
-    "  Usage: mon [options] <cmd>\n"
-    "\n"
-    "  Options:\n"
-    "\n"
-    "    -s, --sleep <sec>        sleep seconds before re-executing [1]\n"
-    "    -S, --status             check status of --pidfile\n"
-    "    -l, --log <file>         specify logfile [mon.log]\n"
-    "    -d, --daemonize          daemonize the program\n"
-    "    -p, --pidfile <path>     write pid to <path>\n"
-    "    -m, --mon-pidfile <path> write mon(1) pid to <path>\n"
-    "    -P, --prefix <str>       add a log prefix <str>\n"
-    "    -v, --version            output program version\n"
-    "    -h, --help               output help information\n"
-    "\n"
-  );
-}
 
 /*
  * Output error `msg`.
@@ -107,7 +95,7 @@ graceful_exit(int sig) {
  */
 
 void
-write_pidfile(char *file, pid_t pid) {
+write_pidfile(const char *file, pid_t pid) {
   char buf[32] = {0};
   snprintf(buf, 32, "%d", pid);
   int fd = open(file, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
@@ -121,7 +109,7 @@ write_pidfile(char *file, pid_t pid) {
  */
 
 void
-show_status_of(char *pidfile) {
+show_status_of(const char *pidfile) {
   off_t size;
   struct stat s;
 
@@ -174,7 +162,7 @@ show_status_of(char *pidfile) {
  */
 
 void
-redirect_stdio_to(char *file) {
+redirect_stdio_to(const char *file) {
   int logfd = open(file, O_WRONLY | O_CREAT | O_APPEND, 0755);
   int nullfd = open("/dev/null", O_RDONLY, 0);
 
@@ -213,7 +201,7 @@ daemonize() {
  */
 
 void
-monitor(char *cmd, int sleepsec, char *pidfile) {
+start(const char *cmd, int sleepsec, const char *pidfile) {
 exec: {
   pid = fork();
   int status;
@@ -259,106 +247,123 @@ exec: {
 }
 
 /*
+ * --log <path>
+ */
+
+static void
+on_log(command_t *self) {
+  monitor_t *monitor = (monitor_t *) self->data;
+  monitor->logfile = self->arg;
+}
+
+/*
+ * --sleep <sec>
+ */
+
+static void
+on_sleep(command_t *self) {
+  monitor_t *monitor = (monitor_t *) self->data;
+  monitor->sleepsec = atoi(self->arg);
+}
+
+/*
+ * --daemonize
+ */
+
+static void
+on_daemonize(command_t *self) {
+  monitor_t *monitor = (monitor_t *) self->data;
+  monitor->daemon = 1;
+}
+
+/*
+ * --pidfile <path>
+ */
+
+static void
+on_pidfile(command_t *self) {
+  monitor_t *monitor = (monitor_t *) self->data;
+  monitor->pidfile = self->arg;
+}
+
+/*
+ * --mon-pidfile <path>
+ */
+
+static void
+on_mon_pidfile(command_t *self) {
+  monitor_t *monitor = (monitor_t *) self->data;
+  monitor->mon_pidfile = self->arg;
+}
+
+/*
+ * --status
+ */
+
+static void
+on_status(command_t *self) {
+  monitor_t *monitor = (monitor_t *) self->data;
+  if (!monitor->pidfile) error("--pidfile required");
+  show_status_of(monitor->pidfile);
+  exit(0);
+}
+
+/*
+ * --prefix
+ */
+
+static void
+on_prefix(command_t *self) {
+  monitor_t *monitor = (monitor_t *) self->data;
+  prefix = self->arg;
+}
+
+/*
  * [options] <cmd>
  */
 
 int
 main(int argc, char **argv){
-  char *cmd = NULL;
-  char *pidfile = NULL;
-  char *mon_pidfile = NULL;
-  char *logfile = "mon.log";
-  int daemon = 0;
-  int sleepsec = 1;
+  monitor_t monitor;
+  monitor.pidfile = NULL;
+  monitor.mon_pidfile = NULL;
+  monitor.logfile = "mon.log";
+  monitor.daemon = 0;
+  monitor.sleepsec = 1;
 
-  // parse args
-  for (int i = 1; i < argc; ++i) {
-    char *arg = argv[i];
-
-    // -l, --log <file>
-    if (!strcmp("-l", arg) || !strcmp("--log", arg)) {
-      logfile = argv[++i];
-      continue;
-    }
-
-    // -d, --daemonize
-    if (!strcmp("-d", arg) || !strcmp("--daemonize", arg)) {
-      daemon = 1;
-      continue;
-    }
-
-    // -s, --sleep <sec>
-    if (!strcmp("-s", arg) || !strcmp("--sleep", arg)) {
-      sleepsec = atoi(argv[++i]);
-      continue;
-    }
-
-    // -p, --pidfile <path>
-    if (!strcmp("-p", arg) || !strcmp("--pidfile", arg)) {
-      pidfile = argv[++i];
-      continue;
-    }
-
-    // -m, --mon-pidfile <path>
-    if (!strcmp("-m", arg) || !strcmp("--mon-pidfile", arg)) {
-      mon_pidfile = argv[++i];
-      continue;
-    }
-
-    // -S, --status
-    if (!strcmp("-S", arg) || !strcmp("--status", arg)) {
-      if (!pidfile) error("--pidfile required");
-      show_status_of(pidfile);
-      exit(0);
-    }
-
-    // -P, --prefix <str>
-    if (!strcmp("-P", arg) || !strcmp("--prefix", arg)) {
-      prefix = argv[++i];
-      continue;
-    }
-
-    // -v, --version
-    if (!strcmp("-v", arg) || !strcmp("--version", arg)) {
-      printf("%s\n", VERSION);
-      exit(0);
-    }
-
-    // -h, --help
-    if (!strcmp("-h", arg) || !strcmp("--help", arg)) {
-      usage();
-      exit(0);
-    }
-
-    // unrecognized
-    if ('-' == arg[0]) {
-      fprintf(stderr, "Error: unrecognized flag %s\n", arg);
-      exit(1);
-    }
-
-    cmd = arg;
-  }
+  command_t program;
+  program.data = &monitor;
+  command_init(&program, "mon", VERSION);
+  command_option(&program, "-l", "--log", "specify logfile [mon.log]", on_log);
+  command_option(&program, "-s", "--sleep <sec>", "sleep seconds before re-executing [1]", on_sleep);
+  command_option(&program, "-S", "--status", "check status of --pidfile", on_status);
+  command_option(&program, "-p", "--pidfile <path>", "write pid to <path>", on_pidfile);
+  command_option(&program, "-m", "--mon-pidfile <path>", "write mon(1) pid to <path>", on_mon_pidfile);
+  command_option(&program, "-P", "--prefix <str>", "add a log prefix", on_prefix);
+  command_option(&program, "-d", "--daemonize", "daemonize the program", on_daemonize);
+  command_parse(&program, argc, argv);
 
   // command required
-  if (!cmd) error("<cmd> required");
-
+  if (!program.argc) error("<cmd> required");
+  const char *cmd = program.argv[0];
+  
   // signals
   signal(SIGTERM, graceful_exit);
   signal(SIGQUIT, graceful_exit);
-
+  
   // daemonize
-  if (daemon) {
+  if (monitor.daemon) {
     daemonize();
-    redirect_stdio_to(logfile);
+    redirect_stdio_to(monitor.logfile);
   }
-
+  
   // write mon pidfile
-  if (mon_pidfile) {
-    log("write mon pid to %s", mon_pidfile);
-    write_pidfile(mon_pidfile, getpid());
+  if (monitor.mon_pidfile) {
+    log("write mon pid to %s", monitor.mon_pidfile);
+    write_pidfile(monitor.mon_pidfile, getpid());
   }
-
-  monitor(cmd, sleepsec, pidfile);
+  
+  start(cmd, monitor.sleepsec, monitor.pidfile);
 
   return 0;
 }

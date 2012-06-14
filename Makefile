@@ -1,8 +1,8 @@
 
 PREFIX = /usr/local
-SRC = src/mon.c deps/ms/ms.c
+SRC = src/mon.c deps/ms/ms.c deps/commander/src/commander.c
 OBJ = $(SRC:.c=.o)
-CFLAGS = -D_GNU_SOURCE -std=c99 -I deps/ms
+CFLAGS = -D_GNU_SOURCE -std=c99 -I deps/ms -I deps/commander/src
 
 mon: $(OBJ)
 	$(CC) $^ -o $@
