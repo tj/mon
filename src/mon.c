@@ -334,7 +334,7 @@ main(int argc, char **argv){
   command_t program;
   program.data = &monitor;
   command_init(&program, "mon", VERSION);
-  command_option(&program, "-l", "--log", "specify logfile [mon.log]", on_log);
+  command_option(&program, "-l", "--log <path>", "specify logfile [mon.log]", on_log);
   command_option(&program, "-s", "--sleep <sec>", "sleep seconds before re-executing [1]", on_sleep);
   command_option(&program, "-S", "--status", "check status of --pidfile", on_status);
   command_option(&program, "-p", "--pidfile <path>", "write pid to <path>", on_pidfile);
