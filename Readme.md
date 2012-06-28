@@ -69,3 +69,9 @@ mon -d "node $app/image-broker" -p $pids/image-broker.pid
 
   `mon(1)` will see that the child died, and re-execute
   the initial start command.
+
+## Links
+
+  Tools built with `mon(1)`:
+  
+    - [mongroup(1)](https://github.com/jgallen23/mongroup) - monitor a group of processes

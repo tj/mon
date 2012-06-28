@@ -45,6 +45,7 @@ typedef struct {
   const char *pidfile;
   const char *mon_pidfile;
   const char *logfile;
+  const char *on_error;
   int daemon;
   int sleepsec;
 } monitor_t;
@@ -196,12 +197,11 @@ daemonize() {
 }
 
 /*
- * Monitor the given `cmd`, `sleepsec` specifying
- * the number of seconds before restart.
+ * Monitor the given `cmd`.
  */
 
 void
-start(const char *cmd, int sleepsec, const char *pidfile) {
+start(const char *cmd, monitor_t *monitor) {
 exec: {
   pid = fork();
   int status;
@@ -219,9 +219,9 @@ exec: {
       log("pid %d", pid);
 
       // write pidfile
-      if (pidfile) {
-        log("write pid to %s", pidfile);
-        write_pidfile(pidfile, pid);
+      if (monitor->pidfile) {
+        log("write pid to %s", monitor->pidfile);
+        write_pidfile(monitor->pidfile, pid);
       }
 
       // wait for exit
@@ -230,16 +230,31 @@ exec: {
       // signalled
       if (WIFSIGNALED(status)) {
         log("signal(%s)", strsignal(WTERMSIG(status)));
-        log("sleep(%d)", sleepsec);
-        sleep(sleepsec);
-        goto exec;
+        log("sleep(%d)", monitor->sleepsec);
+        sleep(monitor->sleepsec);
+        goto error;
       }
 
       // check status
       if (WEXITSTATUS(status)) {
         log("exit(%d)", WEXITSTATUS(status));
-        log("sleep(%d)", sleepsec);
-        sleep(sleepsec);
+        log("sleep(%d)", monitor->sleepsec);
+        sleep(monitor->sleepsec);
+        goto error;
+      }
+
+      // alerts
+      error: {
+        if (monitor->on_error) {
+          log("on error \"%s\"", monitor->on_error);
+          int status = system(monitor->on_error);
+          if (status) {
+            log("exit(%d)", status);
+            log("shutting down");
+            exit(status);
+          }
+        }
+
         goto exec;
       }
   }
@@ -319,6 +334,16 @@ on_prefix(command_t *self) {
 }
 
 /*
+ * --on-error <cmd>
+ */
+
+static void
+on_error(command_t *self) {
+  monitor_t *monitor = (monitor_t *) self->data;
+  monitor->on_error = self->arg;
+}
+
+/*
  * [options] <cmd>
  */
 
@@ -327,6 +352,7 @@ main(int argc, char **argv){
   monitor_t monitor;
   monitor.pidfile = NULL;
   monitor.mon_pidfile = NULL;
+  monitor.on_error = NULL;
   monitor.logfile = "mon.log";
   monitor.daemon = 0;
   monitor.sleepsec = 1;
@@ -341,6 +367,7 @@ main(int argc, char **argv){
   command_option(&program, "-m", "--mon-pidfile <path>", "write mon(1) pid to <path>", on_mon_pidfile);
   command_option(&program, "-P", "--prefix <str>", "add a log prefix", on_prefix);
   command_option(&program, "-d", "--daemonize", "daemonize the program", on_daemonize);
+  command_option(&program, "-e", "--on-error <cmd>", "execute <cmd> on errors", on_error);
   command_parse(&program, argc, argv);
 
   // command required
@@ -363,7 +390,7 @@ main(int argc, char **argv){
     write_pidfile(monitor.mon_pidfile, getpid());
   }
   
-  start(cmd, monitor.sleepsec, monitor.pidfile);
+  start(cmd, &monitor);
 
   return 0;
 }
