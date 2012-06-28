@@ -17,19 +17,20 @@ $ make install
 
 ```
 
-Usage: mon [options] <cmd>
+Usage: mon [options]
 
 Options:
 
-  -s, --sleep <sec>        sleep seconds before re-executing [1]
-  -S, --status             check status of --pidfile
-  -l, --log <file>         specify logfile [mon.log]
-  -d, --daemonize          daemonize the program
-  -p, --pidfile <path>     write pid to <path>
-  -m, --mon-pidfile <path> write mon(1) pid to <path>
-  -P, --prefix <str>       add a log prefix <str>
-  -v, --version            output program version
-  -h, --help               output help information
+  -V, --version                 output program version
+  -h, --help                    output help information
+  -l, --log <path>              specify logfile [mon.log]
+  -s, --sleep <sec>             sleep seconds before re-executing [1]
+  -S, --status                  check status of --pidfile
+  -p, --pidfile <path>          write pid to <path>
+  -m, --mon-pidfile <path>      write mon(1) pid to <path>
+  -P, --prefix <str>            add a log prefix
+  -d, --daemonize               daemonize the program
+  -e, --on-error <cmd>          execute <cmd> on errors
 
 ```
 
