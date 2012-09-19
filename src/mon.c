@@ -216,7 +216,7 @@ exec: {
       perror("execl()");
       exit(1);
     default:
-      log("pid %d", pid);
+      log("child %d", pid);
 
       // write pidfile
       if (monitor->pidfile) {
@@ -369,6 +369,8 @@ main(int argc, char **argv){
   command_option(&program, "-d", "--daemonize", "daemonize the program", on_daemonize);
   command_option(&program, "-e", "--on-error <cmd>", "execute <cmd> on errors", on_error);
   command_parse(&program, argc, argv);
+
+  log("pid %d", getpid());
 
   // command required
   if (!program.argc) error("<cmd> required");
