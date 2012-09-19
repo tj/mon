@@ -212,7 +212,7 @@ exec: {
       exit(1);
     case 0:
       log("sh -c \"%s\"", cmd);
-      execl("/bin/sh", "sh", "-c", cmd, 0);
+      execl("sh", "-c", cmd, 0);
       perror("execl()");
       exit(1);
     default:
