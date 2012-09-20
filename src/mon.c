@@ -211,8 +211,8 @@ exec: {
       perror("fork()");
       exit(1);
     case 0:
-      log("sh -c \"%s\"", cmd);
-      execl("/bin/sh", "sh", "-c", cmd, 0);
+      log("bash -c \"%s\"", cmd);
+      execl("/bin/bash", "bash", "-c", cmd, 0);
       perror("execl()");
       exit(1);
     default:
