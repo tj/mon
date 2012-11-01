@@ -358,8 +358,9 @@ main(int argc, char **argv){
   monitor.sleepsec = 1;
 
   command_t program;
-  program.data = &monitor;
   command_init(&program, "mon", VERSION);
+  program.data = &monitor;
+  program.usage = "[options] <command>";
   command_option(&program, "-l", "--log <path>", "specify logfile [mon.log]", on_log);
   command_option(&program, "-s", "--sleep <sec>", "sleep seconds before re-executing [1]", on_sleep);
   command_option(&program, "-S", "--status", "check status of --pidfile", on_status);

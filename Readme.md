@@ -17,7 +17,7 @@ $ make install
 
 ```
 
-Usage: mon [options]
+Usage: mon [options] <command>
 
 Options:
 
