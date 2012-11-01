@@ -38,7 +38,7 @@ command_version(command_t *self) {
 void
 command_help(command_t *self) {
   printf("\n");
-  printf("  Usage: %s [options]\n", self->name);
+  printf("  Usage: %s %s\n", self->name, self->usage);
   printf("\n");
   printf("  Options:\n");
   printf("\n");
@@ -63,6 +63,7 @@ command_init(command_t *self, const char *name, const char *version) {
   self->name = name;
   self->version = version;
   self->option_count = self->argc = 0;
+  self->usage = "[options]";
   command_option(self, "-V", "--version", "output program version", command_version);
   command_option(self, "-h", "--help", "output help information", command_help);
 }
@@ -125,6 +126,8 @@ command_option(command_t *self, const char *small, const char *large, const char
 
 void
 command_parse(command_t *self, int argc, char **argv) {
+  int literal = 0;
+
   for (int i = 1; i < argc; ++i) {
     const char *arg = argv[i];
     for (int j = 0; j < self->option_count; ++j) {
@@ -138,9 +141,8 @@ command_parse(command_t *self, int argc, char **argv) {
         if (option->required_arg) {
           arg = argv[++i];
           if (!arg || '-' == arg[0]) {
-            char *err = malloc(128);
-            snprintf(err, 128, "%s requires an argument", option->large);
-            error(err);
+            fprintf(stderr, "%s %s argument required\n", option->large, option->argname);
+            exit(1);
           }
           self->arg = arg;
         }
@@ -158,9 +160,21 @@ command_parse(command_t *self, int argc, char **argv) {
       }
     }
 
+    // --
+    if ('-' == arg[0] && '-' == arg[1] && 0 == arg[2]) {
+      literal = 1;
+      goto match;
+    }
+
+    // unrecognized
+    if ('-' == arg[0] && !literal) {
+      fprintf(stderr, "unrecognized flag %s\n", arg);
+      exit(1);
+    }
+
     int n = self->argc++;
     if (n == COMMANDER_MAX_ARGS) error("Maximum number of arguments exceeded");
-    self->argv[n] = arg;
+    self->argv[n] = (char *) arg;
     match:;
   }
 }

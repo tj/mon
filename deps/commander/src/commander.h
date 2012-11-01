@@ -57,13 +57,14 @@ typedef struct {
 
 typedef struct command {
   void *data;
+  const char *usage;
   const char *arg;
   const char *name;
   const char *version;
   int option_count;
   command_option_t options[COMMANDER_MAX_OPTIONS];
   int argc;
-  const char *argv[COMMANDER_MAX_ARGS];
+  char *argv[COMMANDER_MAX_ARGS];
 } command_t;
 
 // prototypes
