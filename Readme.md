@@ -36,6 +36,27 @@ Options:
 
 ## Example
 
+  The most simple use of `mon(1)` is to simply keep a command running:
+
+```
+$ mon ./myprogram
+mon : pid 50395
+mon : child 50396
+mon : sh -c "./example/program.sh"
+one
+two
+three
+```
+
+  You may daemonize mon and disassociate from the term with `-d`:
+
+```
+$ mon ./myprogram -d
+mon : pid 50413
+```
+
+## Groups of mon
+
   `mon(1)` is designed to monitor a single program only, this means a few things,
   firstly that a single `mon(1)` may crash and it will not influence other programs,
   secondly that the "configuration" for `mon(1)` is simply a shell script,
