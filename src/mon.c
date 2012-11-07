@@ -371,8 +371,6 @@ main(int argc, char **argv){
   command_option(&program, "-e", "--on-error <cmd>", "execute <cmd> on errors", on_error);
   command_parse(&program, argc, argv);
 
-  log("pid %d", getpid());
-
   // command required
   if (!program.argc) error("<cmd> required");
   const char *cmd = program.argv[0];
