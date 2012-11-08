@@ -1,4 +1,10 @@
 
+1.0.1 / 2012-11-07 
+==================
+
+  * fix child exit, reset signals
+  * change graceful_exit to kill() with the same sig
+
 1.0.0 / 2012-11-07 
 ==================
 
