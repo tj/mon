@@ -87,7 +87,7 @@ alive(pid_t pid) {
 void
 graceful_exit(int sig) {
   log("shutting down");
-  kill(pid, SIGTERM);
+  kill(pid, sig);
   exit(1);
 }
 
