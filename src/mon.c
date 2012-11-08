@@ -81,13 +81,14 @@ alive(pid_t pid) {
 }
 
 /*
- * Kill everythanggg.
+ * Graceful exit, signal child.
  */
 
 void
 graceful_exit(int sig) {
   log("shutting down");
-  kill(pid, sig);
+  log("kill(%d, %d)", sig, pid);
+  kill(pid, SIGKILL);
   exit(1);
 }
 
@@ -211,6 +212,8 @@ exec: {
       perror("fork()");
       exit(1);
     case 0:
+      signal(SIGTERM, SIG_DFL);
+      signal(SIGQUIT, SIG_DFL);
       log("sh -c \"%s\"", cmd);
       execl("/bin/sh", "sh", "-c", cmd, 0);
       perror("execl()");
