@@ -12,6 +12,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <stdint.h>
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/wait.h>
@@ -46,8 +47,12 @@ typedef struct {
   const char *mon_pidfile;
   const char *logfile;
   const char *on_error;
+  int64_t last_restart_at;
+  int64_t clock;
   int daemon;
   int sleepsec;
+  int max_attempts;
+  int attempts;
 } monitor_t;
 
 /*
@@ -90,6 +95,18 @@ graceful_exit(int sig) {
   log("kill(%d, %d)", sig, pid);
   kill(pid, SIGKILL);
   exit(1);
+}
+
+/*
+ * Return a timestamp in milliseconds.
+ */
+
+int64_t
+timestamp() {
+  struct timeval tv;
+  int ret = gettimeofday(&tv, NULL);
+  if (-1 == ret) return -1;
+  return (int64_t) ((int64_t) tv.tv_sec * 1000 + (int64_t) tv.tv_usec / 1000);
 }
 
 /*
@@ -198,6 +215,55 @@ daemonize() {
 }
 
 /*
+ * Invoke the --on-error command.
+ */
+
+void
+exec_error_command(monitor_t *monitor) {
+  log("on error \"%s\"", monitor->on_error);
+  int status = system(monitor->on_error);
+  if (status) {
+    log("exit(%d)", status);
+    log("shutting down");
+    exit(status);
+  }
+}
+
+/*
+ * Return the ms since the last restart.
+ */
+
+int64_t
+ms_since_last_restart(monitor_t *monitor) {
+  if (0 == monitor->last_restart_at) return 0;
+  int64_t now = timestamp();
+  return now - monitor->last_restart_at;
+}
+
+/*
+ * Check if the maximum restarts within 60 seconds
+ * have been exceeded and return 1, 0 otherwise.
+ */
+
+int
+attempts_exceeded(monitor_t *monitor, int64_t ms) {
+  monitor->attempts++;
+  monitor->clock -= ms;
+
+  // reset
+  if (monitor->clock <= 0) {
+    monitor->clock = 60000;
+    monitor->attempts = 0;
+    return 0;
+  }
+
+  // all good
+  if (monitor->attempts < monitor->max_attempts) return 0;
+
+  return 1;
+}
+
+/*
  * Monitor the given `cmd`.
  */
 
@@ -246,18 +312,19 @@ exec: {
         goto error;
       }
 
-      // alerts
+      // restart
       error: {
-        if (monitor->on_error) {
-          log("on error \"%s\"", monitor->on_error);
-          int status = system(monitor->on_error);
-          if (status) {
-            log("exit(%d)", status);
-            log("shutting down");
-            exit(status);
-          }
+        if (monitor->on_error) exec_error_command(monitor);
+        int64_t ms = ms_since_last_restart(monitor);
+        monitor->last_restart_at = timestamp();
+        log("last restart %s ago", milliseconds_to_long_string(ms));
+        log("%d attempts remaining", monitor->max_attempts - monitor->attempts);
+        if (attempts_exceeded(monitor, ms)) {
+          char *time = milliseconds_to_long_string(60000 - monitor->clock);
+          log("%d restarts within %s", monitor->max_attempts, time);
+          log("bailing");
+          exit(2);
         }
-
         goto exec;
       }
   }
@@ -347,6 +414,16 @@ on_error(command_t *self) {
 }
 
 /*
+ * --attempts <n>
+ */
+
+static void
+on_attempts(command_t *self) {
+  monitor_t *monitor = (monitor_t *) self->data;
+  monitor->attempts = atoi(self->arg);
+}
+
+/*
  * [options] <cmd>
  */
 
@@ -359,6 +436,10 @@ main(int argc, char **argv){
   monitor.logfile = "mon.log";
   monitor.daemon = 0;
   monitor.sleepsec = 1;
+  monitor.max_attempts = 10;
+  monitor.attempts = 0;
+  monitor.last_restart_at = 0;
+  monitor.clock = 60000;
 
   command_t program;
   command_init(&program, "mon", VERSION);
@@ -372,6 +453,7 @@ main(int argc, char **argv){
   command_option(&program, "-P", "--prefix <str>", "add a log prefix", on_prefix);
   command_option(&program, "-d", "--daemonize", "daemonize the program", on_daemonize);
   command_option(&program, "-e", "--on-error <cmd>", "execute <cmd> on errors", on_error);
+  command_option(&program, "-a", "--attempts <n>", "retry attempts within 60 seconds [10]", on_attempts);
   command_parse(&program, argc, argv);
 
   // command required
