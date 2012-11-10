@@ -420,7 +420,7 @@ on_error(command_t *self) {
 static void
 on_attempts(command_t *self) {
   monitor_t *monitor = (monitor_t *) self->data;
-  monitor->attempts = atoi(self->arg);
+  monitor->max_attempts = atoi(self->arg);
 }
 
 /*
