@@ -91,7 +91,7 @@ emailed failure notice to tobi@ferret-land.com
 mon : bye :)
 ```
 
-## Groups of mon
+## Managing several mon(1) processes
 
   `mon(1)` is designed to monitor a single program only, this means a few things,
   firstly that a single `mon(1)` may crash and it will not influence other programs,
