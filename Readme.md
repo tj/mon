@@ -57,6 +57,40 @@ $ mon ./myprogram -d
 mon : pid 50413
 ```
 
+## Failure alerts
+
+ `mon(1)` will continue to attempt restarting your program unless the maximum number
+ of `--attempts` has been exceeded within 60 seconds. Each time a restart is performed
+ the `--on-restart` command is executed, and when `mon(1)` finally bails the `--on-error`
+ command is then executed before mon itself exits and gives up. 
+
+  For example the following will echo "hey" three times before mon realizes that
+  the program is unstable, since it's exiting immediately, thus finally invoking
+  `./email.sh`, or any other script you like.
+
+```
+mon "echo hey" --attempts 3 --on-error ./email.sh
+mon : child 48386
+mon : sh -c "echo hey"
+hey
+mon : last restart less than one second ago
+mon : 3 attempts remaining
+mon : child 48387
+mon : sh -c "echo hey"
+hey
+mon : last restart less than one second ago
+mon : 2 attempts remaining
+mon : child 48388
+mon : sh -c "echo hey"
+hey
+mon : last restart less than one second ago
+mon : 1 attempts remaining
+mon : 3 restarts within less than one second, bailing
+mon : on error `sh test.sh`
+emailed failure notice to tobi@ferret-land.com
+mon : bye :)
+```
+
 ## Groups of mon
 
   `mon(1)` is designed to monitor a single program only, this means a few things,
