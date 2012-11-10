@@ -40,7 +40,7 @@ Options:
 
   The most simple use of `mon(1)` is to simply keep a command running:
 
-```
+```js
 $ mon ./myprogram
 mon : pid 50395
 mon : child 50396
@@ -52,7 +52,7 @@ three
 
   You may daemonize mon and disassociate from the term with `-d`:
 
-```
+```js
 $ mon ./myprogram -d
 mon : pid 50413
 ```
@@ -68,7 +68,7 @@ mon : pid 50413
   the program is unstable, since it's exiting immediately, thus finally invoking
   `./email.sh`, or any other script you like.
 
-```
+```js
 mon "echo hey" --attempts 3 --on-error ./email.sh
 mon : child 48386
 mon : sh -c "echo hey"
