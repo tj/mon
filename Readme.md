@@ -117,6 +117,12 @@ mon -d "node $app/image-broker" -p $pids/image-broker.pid
   I highly recommend checking out jgallen23's [mongroup(1)]([mongroup(1)](https://github.com/jgallen23/mongroup),
   which provides a great interface for managing any number of `mon(1)` instances.
 
+## Logs
+
+  By default `mon(1)` logs to stdio, however when daemonized it will default
+  to writing a log file named `./mon.log`. If you have several instances you may
+  wish to `--prefix` the log lines, or specify separate files.
+
 ## Signals
 
   - __SIGQUIT__ graceful shutdown
