@@ -60,11 +60,13 @@ typedef struct {
  */
 
 #define log(fmt, args...) \
-  if (prefix) { \
-    printf("mon : %s : " fmt "\n", prefix, ##args); \
-  } else { \
-    printf("mon : " fmt "\n", ##args); \
-  }
+  do { \
+    if (prefix) { \
+      printf("mon : %s : " fmt "\n", prefix, ##args); \
+    } else { \
+      printf("mon : " fmt "\n", ##args); \
+    } \
+  } while(0)
 
 /*
  * Output error `msg`.
@@ -222,11 +224,7 @@ void
 exec_restart_command(monitor_t *monitor) {
   log("on restart `%s`", monitor->on_restart);
   int status = system(monitor->on_restart);
-  if (status) {
-    log("exit(%d)", status);
-    log("shutting down");
-    exit(status);
-  }
+  if (status) log("exit(%d)", status);
 }
 
 /*
