@@ -30,7 +30,9 @@ Options:
   -m, --mon-pidfile <path>      write mon(1) pid to <path>
   -P, --prefix <str>            add a log prefix
   -d, --daemonize               daemonize the program
+  -a, --attempts <n>            retry attempts within 60 seconds [10]
   -R, --on-restart <cmd>        execute <cmd> on restarts
+  -E, --on-error <cmd>          execute <cmd> on error
 
 ```
 
