@@ -1,4 +1,13 @@
 
+1.1.0 / 2012-11-09 
+==================
+
+  * add `--on-error <cmd>`
+  * add `--on-restart <cmd>`
+  * add `--attempts <max>`
+  * add restart limiting / bailing logic
+  * change signalling of child to pgid to fix `dash` support
+
 1.0.1 / 2012-11-07 
 ==================
 
