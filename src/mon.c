@@ -89,15 +89,17 @@ alive(pid_t pid) {
 }
 
 /*
- * Graceful exit, signal child.
+ * Graceful exit, signal process group.
  */
 
 void
 graceful_exit(int sig) {
+  pid_t pid = getpid();
   log("shutting down");
-  log("kill(%d, %d)", sig, pid);
-  kill(pid, SIGKILL);
-  exit(1);
+  log("kill(-%d, %d)", pid, sig);
+  kill(-pid, SIGKILL);
+  log("bye :)");
+  exit(0);
 }
 
 /*
