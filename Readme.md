@@ -114,6 +114,9 @@ mon -d "node $app/image" -p $pids/image-1.pid
 mon -d "node $app/image-broker" -p $pids/image-broker.pid
 ```
 
+  I highly recommend checking out jgallen23's [mongroup(1)]([mongroup(1)](https://github.com/jgallen23/mongroup),
+  which provides a great interface for managing any number of `mon(1)` instances.
+
 ## Restarting processes
 
   Restarting a process is simple, `kill(1)` it. For example if your app is written
@@ -133,3 +136,7 @@ mon -d "node $app/image-broker" -p $pids/image-broker.pid
   Tools built with `mon(1)`:
   
   - [mongroup(1)](https://github.com/jgallen23/mongroup) - monitor a group of processes
+
+# License
+
+  MIT
