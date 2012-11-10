@@ -33,12 +33,6 @@
 static const char *prefix = NULL;
 
 /*
- * Child process PID.
- */
-
-static pid_t pid;
-
-/*
  * Monitor.
  */
 
@@ -282,7 +276,7 @@ attempts_exceeded(monitor_t *monitor, int64_t ms) {
 void
 start(const char *cmd, monitor_t *monitor) {
 exec: {
-  pid = fork();
+  pid_t pid = fork();
   int status;
 
   switch (pid) {
