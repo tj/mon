@@ -3,9 +3,11 @@
 
   Super-simple monitoring program.
 
-  Effectively all it does is daemonize some programs,
-  re-executing the program on failure, write pidfiles,
-  and provide status checks.
+  `mon` spawned from the needlessly complex
+  frustration that tools like [monit](http://mmonit.com/monit/)
+  provide, with their awkward DSLs and setup. `mon` is written
+  in C, uses less than 400kb of memory, and is incredibly simple
+  to set up.
 
 ## Installation
 
