@@ -30,7 +30,7 @@ Options:
   -m, --mon-pidfile <path>      write mon(1) pid to <path>
   -P, --prefix <str>            add a log prefix
   -d, --daemonize               daemonize the program
-  -e, --on-error <cmd>          execute <cmd> on errors
+  -R, --on-restart <cmd>        execute <cmd> on restarts
 
 ```
 

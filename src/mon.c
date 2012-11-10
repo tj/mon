@@ -46,7 +46,7 @@ typedef struct {
   const char *pidfile;
   const char *mon_pidfile;
   const char *logfile;
-  const char *on_error;
+  const char *on_restart;
   int64_t last_restart_at;
   int64_t clock;
   int daemon;
@@ -215,13 +215,13 @@ daemonize() {
 }
 
 /*
- * Invoke the --on-error command.
+ * Invoke the --on-restart command.
  */
 
 void
-exec_error_command(monitor_t *monitor) {
-  log("on error \"%s\"", monitor->on_error);
-  int status = system(monitor->on_error);
+exec_restart_command(monitor_t *monitor) {
+  log("on restart `%s`", monitor->on_restart);
+  int status = system(monitor->on_restart);
   if (status) {
     log("exit(%d)", status);
     log("shutting down");
@@ -314,7 +314,7 @@ exec: {
 
       // restart
       error: {
-        if (monitor->on_error) exec_error_command(monitor);
+        if (monitor->on_restart) exec_restart_command(monitor);
         int64_t ms = ms_since_last_restart(monitor);
         monitor->last_restart_at = timestamp();
         log("last restart %s ago", milliseconds_to_long_string(ms));
@@ -404,13 +404,13 @@ on_prefix(command_t *self) {
 }
 
 /*
- * --on-error <cmd>
+ * --on-restart <cmd>
  */
 
 static void
-on_error(command_t *self) {
+on_restart(command_t *self) {
   monitor_t *monitor = (monitor_t *) self->data;
-  monitor->on_error = self->arg;
+  monitor->on_restart = self->arg;
 }
 
 /*
@@ -432,7 +432,7 @@ main(int argc, char **argv){
   monitor_t monitor;
   monitor.pidfile = NULL;
   monitor.mon_pidfile = NULL;
-  monitor.on_error = NULL;
+  monitor.on_restart = NULL;
   monitor.logfile = "mon.log";
   monitor.daemon = 0;
   monitor.sleepsec = 1;
@@ -452,7 +452,7 @@ main(int argc, char **argv){
   command_option(&program, "-m", "--mon-pidfile <path>", "write mon(1) pid to <path>", on_mon_pidfile);
   command_option(&program, "-P", "--prefix <str>", "add a log prefix", on_prefix);
   command_option(&program, "-d", "--daemonize", "daemonize the program", on_daemonize);
-  command_option(&program, "-e", "--on-error <cmd>", "execute <cmd> on errors", on_error);
+  command_option(&program, "-R", "--on-restart <cmd>", "execute <cmd> on restarts", on_restart);
   command_option(&program, "-a", "--attempts <n>", "retry attempts within 60 seconds [10]", on_attempts);
   command_parse(&program, argc, argv);
 
