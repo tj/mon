@@ -117,19 +117,10 @@ mon -d "node $app/image-broker" -p $pids/image-broker.pid
   I highly recommend checking out jgallen23's [mongroup(1)]([mongroup(1)](https://github.com/jgallen23/mongroup),
   which provides a great interface for managing any number of `mon(1)` instances.
 
-## Restarting processes
+## Signals
 
-  Restarting a process is simple, `kill(1)` it. For example if your app is written
-  to gracefully exit on __SIGQUIT__ you might want to do:
-  
-    $ kill -s SIGQUIT $(cat /var/run/app-0.pid)
-
-  Or if you just want things done quick and dirty:
-
-    $ kill -s SIGKILL $(cat /var/run/app-0.pid)
-
-  `mon(1)` will see that the child died, and re-execute
-  the initial start command.
+  - __SIGQUIT__ graceful shutdown
+  - __SIGTERM__ graceful shutdown
 
 ## Links
 
