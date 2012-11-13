@@ -91,7 +91,7 @@ graceful_exit(int sig) {
   pid_t pid = getpid();
   log("shutting down");
   log("kill(-%d, %d)", pid, sig);
-  kill(-pid, SIGKILL);
+  kill(-pid, sig);
   log("bye :)");
   exit(0);
 }
