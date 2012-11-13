@@ -153,7 +153,7 @@ show_status_of(const char *pidfile) {
     exit(1);
   }
 
-  // updtime
+  // uptime
   time_t modified = s.st_mtime;
 
   struct timeval t;
