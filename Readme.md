@@ -70,7 +70,7 @@ mon : pid 50413
  `mon(1)` will continue to attempt restarting your program unless the maximum number
  of `--attempts` has been exceeded within 60 seconds. Each time a restart is performed
  the `--on-restart` command is executed, and when `mon(1)` finally bails the `--on-error`
- command is then executed before mon itself exits and gives up. 
+ command is then executed before mon itself exits and gives up.
 
   For example the following will echo "hey" three times before mon realizes that
   the program is unstable, since it's exiting immediately, thus finally invoking
@@ -122,7 +122,7 @@ mon -d "node $app/image" -p $pids/image-1.pid
 mon -d "node $app/image-broker" -p $pids/image-broker.pid
 ```
 
-  I highly recommend checking out jgallen23's [mongroup(1)]([mongroup(1)](https://github.com/jgallen23/mongroup),
+  I highly recommend checking out jgallen23's [mongroup(1)](https://github.com/jgallen23/mongroup),
   which provides a great interface for managing any number of `mon(1)` instances.
 
 ## Logs
@@ -139,7 +139,7 @@ mon -d "node $app/image-broker" -p $pids/image-broker.pid
 ## Links
 
   Tools built with `mon(1)`:
-  
+
   - [mongroup(1)](https://github.com/jgallen23/mongroup) - monitor a group of processes
 
 # License
