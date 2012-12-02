@@ -408,7 +408,6 @@ on_status(command_t *self) {
 
 static void
 on_prefix(command_t *self) {
-  monitor_t *monitor = (monitor_t *) self->data;
   prefix = self->arg;
 }
 
