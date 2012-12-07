@@ -229,9 +229,11 @@ exec_restart_command(monitor_t *monitor) {
  */
 
 void
-exec_error_command(monitor_t *monitor) {
-  log("on error `%s`", monitor->on_error);
-  int status = system(monitor->on_error);
+exec_error_command(monitor_t *monitor, pid_t pid) {
+  char buf[256] = {0};
+  snprintf(buf, 256, "%s %d", monitor->on_error, pid);
+  log("on error `%s`", buf);
+  int status = system(buf);
   if (status) log("exit(%d)", status);
 }
 
@@ -329,7 +331,7 @@ exec: {
         if (attempts_exceeded(monitor, ms)) {
           char *time = milliseconds_to_long_string(60000 - monitor->clock);
           log("%d restarts within %s, bailing", monitor->max_attempts, time);
-          exec_error_command(monitor);
+          exec_error_command(monitor, pid);
           log("bye :)");
           exit(2);
         }
