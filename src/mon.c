@@ -218,9 +218,11 @@ daemonize() {
  */
 
 void
-exec_restart_command(monitor_t *monitor) {
-  log("on restart `%s`", monitor->on_restart);
-  int status = system(monitor->on_restart);
+exec_restart_command(monitor_t *monitor, pid_t pid) {
+  char buf[256] = {0};
+  snprintf(buf, 256, "%s %d", monitor->on_restart, pid);
+  log("on restart `%s`", buf);
+  int status = system(buf);
   if (status) log("exit(%d)", status);
 }
 
@@ -322,7 +324,7 @@ exec: {
 
       // restart
       error: {
-        if (monitor->on_restart) exec_restart_command(monitor);
+        if (monitor->on_restart) exec_restart_command(monitor, pid);
         int64_t ms = ms_since_last_restart(monitor);
         monitor->last_restart_at = timestamp();
         log("last restart %s ago", milliseconds_to_long_string(ms));
