@@ -1,6 +1,6 @@
 {
   "name": "mon",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "repo": "visionmedia/mon",
   "description": "Simple process monitoring",
   "keywords": ["process", "monitoring", "monitor", "availability"],
