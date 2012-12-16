@@ -12,21 +12,22 @@
 
 // microseconds
 
-#define US_SEC 1000000
+#define US_MSEC (long long)1000
+#define US_SEC 1000 * US_MSEC
 #define US_MIN 60 * US_SEC
 #define US_HOUR 60 * US_MIN
 #define US_DAY 24 * US_HOUR
-#define US_WEEK 7 * US_HOUR
+#define US_WEEK 7 * US_DAY
 #define US_YEAR 52 * US_WEEK
 
 // milliseconds
 
-#define MS_SEC 1000
-#define MS_MIN 60000
-#define MS_HOUR 3600000
-#define MS_DAY 86400000
-#define MS_WEEK 604800000
-#define MS_YEAR 31557600000
+#define MS_SEC (long long)1000
+#define MS_MIN 60 * MS_SEC
+#define MS_HOUR 60 * MS_MIN
+#define MS_DAY 24 * MS_HOUR
+#define MS_WEEK 7 * MS_DAY
+#define MS_YEAR 52 * MS_WEEK
 
 /*
  * Convert the given `str` representation to microseconds,
