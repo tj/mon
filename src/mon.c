@@ -24,7 +24,7 @@
  * Program version.
  */
 
-#define VERSION "1.1.2"
+#define VERSION "1.2.0"
 
 /*
  * Log prefix.
@@ -483,23 +483,23 @@ main(int argc, char **argv){
   // command required
   if (!program.argc) error("<cmd> required");
   const char *cmd = program.argv[0];
-  
+
   // signals
   signal(SIGTERM, graceful_exit);
   signal(SIGQUIT, graceful_exit);
-  
+
   // daemonize
   if (monitor.daemon) {
     daemonize();
     redirect_stdio_to(monitor.logfile);
   }
-  
+
   // write mon pidfile
   if (monitor.mon_pidfile) {
     log("write mon pid to %s", monitor.mon_pidfile);
     write_pidfile(monitor.mon_pidfile, getpid());
   }
-  
+
   start(cmd, &monitor);
 
   return 0;
