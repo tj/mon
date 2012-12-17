@@ -99,6 +99,8 @@ emailed failure notice to tobi@ferret-land.com
 mon : bye :)
 ```
 
+  __NOTE__: The process id is passed as an argument to both `--on-error` and `--on-restart` scripts.
+
 ## Managing several mon(1) processes
 
   `mon(1)` is designed to monitor a single program only, this means a few things,
