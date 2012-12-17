@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
 
 # faux email / alert
-echo "it broke!" > email
+pid=$1
+echo "process $pid broke!" > email
