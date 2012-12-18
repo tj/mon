@@ -64,6 +64,7 @@ command_init(command_t *self, const char *name, const char *version) {
   self->version = version;
   self->option_count = self->argc = 0;
   self->usage = "[options]";
+  self->nargv = NULL;
   command_option(self, "-V", "--version", "output program version", command_version);
   command_option(self, "-h", "--help", "output help information", command_help);
 }
@@ -96,6 +97,45 @@ parse_argname(const char *str, char *flag, char *arg) {
 }
 
 /*
+ * Normalize the argument vector by exploding
+ * multiple options (if any). For example
+ * "foo -abc --scm git" -> "foo -a -b -c --scm git"
+ */
+
+static char **
+normalize_args(int *argc, char **argv) {
+  int size = 0;
+  int alloc = *argc + 1;
+  char **nargv = malloc(alloc * sizeof(char *));
+
+  for (int i = 0; argv[i]; ++i) {
+    const char *arg = argv[i];
+    int len = strlen(arg);
+
+    // short flag
+    if (len > 2 && '-' == arg[0] && !strchr(arg + 1, '-')) {
+      alloc += len - 2;
+      nargv = realloc(nargv, alloc * sizeof(char *));
+      for (int j = 1; j < len; ++j) {
+        nargv[size] = malloc(3);
+        sprintf(nargv[size], "-%c", arg[j]);
+        size++;
+      }
+      continue;
+    }
+
+    // regular arg
+    nargv[size] = malloc(len + 1);
+    strcpy(nargv[size], arg);
+    size++;
+  }
+
+  nargv[size] = NULL;
+  *argc = size;
+  return nargv;
+}
+
+/*
  * Define an option.
  */
 
@@ -119,13 +159,13 @@ command_option(command_t *self, const char *small, const char *large, const char
 }
 
 /*
- * Parse `argv`.
- * 
- * TODO: list of short opts (-vo as -v -o)
+ * Parse `argv` (internal).
+ * Input arguments should be normalized first
+ * see `normalize_args`.
  */
 
-void
-command_parse(command_t *self, int argc, char **argv) {
+static void
+command_parse_args(command_t *self, int argc, char **argv) {
   int literal = 0;
 
   for (int i = 1; i < argc; ++i) {
@@ -177,4 +217,14 @@ command_parse(command_t *self, int argc, char **argv) {
     self->argv[n] = (char *) arg;
     match:;
   }
+}
+
+/*
+ * Parse `argv` (public).
+ */
+
+void
+command_parse(command_t *self, int argc, char **argv) {
+  self->nargv = normalize_args(&argc, argv);
+  command_parse_args(self, argc, self->nargv);
 }
