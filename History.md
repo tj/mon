@@ -1,4 +1,10 @@
 
+1.2.1 / 2013-05-31 
+==================
+
+ * fix: only invoke error command when specified
+ * update commander
+
 1.2.0 / 2012-12-17 
 ==================
 
