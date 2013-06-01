@@ -333,7 +333,7 @@ exec: {
         if (attempts_exceeded(monitor, ms)) {
           char *time = milliseconds_to_long_string(60000 - monitor->clock);
           log("%d restarts within %s, bailing", monitor->max_attempts, time);
-          exec_error_command(monitor, pid);
+          if (monitor->on_error) exec_error_command(monitor, pid);
           log("bye :)");
           exit(2);
         }
