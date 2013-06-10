@@ -1,4 +1,9 @@
 
+1.2.2 / 2013-06-10 
+==================
+
+ * fix waiting for child to exit on graceful shutdown
+
 1.2.1 / 2013-05-31 
 ==================
 
