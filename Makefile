@@ -4,9 +4,10 @@ OBJ = $(SRC:.c=.o)
 CFLAGS = -D_GNU_SOURCE -std=c99 -I deps/
 
 mon: $(OBJ)
-	$(CC) $^ -o $@
+	$(CC) $(OBJ) -o $@
 
-%.o: %.c
+.SUFFIXES: .c .o
+.c.o:
 	$(CC) $< $(CFLAGS) -c -o $@
 
 install: mon
