@@ -13,6 +13,7 @@
 #include <fcntl.h>
 #include <signal.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/wait.h>
@@ -48,6 +49,7 @@ typedef struct {
   int sleepsec;
   int max_attempts;
   int attempts;
+  bool show_status;
 } monitor_t;
 
 /*
@@ -444,9 +446,7 @@ on_mon_pidfile(command_t *self) {
 static void
 on_status(command_t *self) {
   monitor_t *monitor = (monitor_t *) self->data;
-  if (!monitor->pidfile) error("--pidfile required");
-  show_status_of(monitor->pidfile);
-  exit(0);
+  monitor->show_status = true;
 }
 
 /*
@@ -505,6 +505,7 @@ main(int argc, char **argv){
   monitor.attempts = 0;
   monitor.last_restart_at = 0;
   monitor.clock = 60000;
+  monitor.show_status = false;
 
   command_t program;
   command_init(&program, "mon", VERSION);
@@ -521,6 +522,12 @@ main(int argc, char **argv){
   command_option(&program, "-R", "--on-restart <cmd>", "execute <cmd> on restarts", on_restart);
   command_option(&program, "-E", "--on-error <cmd>", "execute <cmd> on error", on_error);
   command_parse(&program, argc, argv);
+
+  if (monitor.show_status) {
+    if (!monitor.pidfile) error("--pidfile required");
+    show_status_of(monitor.pidfile);
+    exit(0);
+  }
 
   // command required
   if (!program.argc) error("<cmd> required");
