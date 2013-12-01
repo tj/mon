@@ -1,4 +1,10 @@
 
+1.2.3 / 2013-12-01
+==================
+
+ * improve -S to be position independent of -p
+ * improve compatibility with BSD make.
+
 1.2.2 / 2013-06-10 
 ==================
 
