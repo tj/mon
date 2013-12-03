@@ -147,3 +147,7 @@ mon -d "node $app/image-broker" -p $pids/image-broker.pid
 # License
 
   MIT
+
+# Build Status
+
+  [![Build Status](https://travis-ci.org/visionmedia/mon.png)](http://travis-ci.org/visionmedia/mon)
