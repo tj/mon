@@ -1,0 +1,9 @@
+language: c
+
+compiler:
+    - clang
+    - gcc
+
+install: make && sudo make install
+
+script: /usr/local/bin/mon -h
