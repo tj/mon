@@ -264,8 +264,8 @@ daemonize() {
 
 void
 exec_restart_command(monitor_t *monitor, pid_t pid) {
-  char buf[256] = {0};
-  snprintf(buf, 256, "%s %d", monitor->on_restart, pid);
+  char buf[1024] = {0};
+  snprintf(buf, 1024, "%s %d", monitor->on_restart, pid);
   log("on restart `%s`", buf);
   int status = system(buf);
   if (status) log("exit(%d)", status);
@@ -277,8 +277,8 @@ exec_restart_command(monitor_t *monitor, pid_t pid) {
 
 void
 exec_error_command(monitor_t *monitor, pid_t pid) {
-  char buf[256] = {0};
-  snprintf(buf, 256, "%s %d", monitor->on_error, pid);
+  char buf[1024] = {0};
+  snprintf(buf, 1024, "%s %d", monitor->on_error, pid);
   log("on error `%s`", buf);
   int status = system(buf);
   if (status) log("exit(%d)", status);
