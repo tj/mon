@@ -40,6 +40,7 @@ Options:
   -a, --attempts <n>            retry attempts within 60 seconds [10]
   -R, --on-restart <cmd>        execute <cmd> on restarts
   -E, --on-error <cmd>          execute <cmd> on error
+  -X, --on-exit <cmd>           execute <cmd> on monitor exit
 
 ```
 
