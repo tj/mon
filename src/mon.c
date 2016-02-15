@@ -195,10 +195,10 @@ show_status_of(const char *pidfile) {
 
   if (alive(pid)) {
     char *str = milliseconds_to_long_string(secs * 1000);
-    printf("\e[90m%d\e[0m : \e[32malive\e[0m : uptime %s\e[m\n", pid, str);
+    printf("\e[1;36m%d\e[0m : \e[1;32malive\e[0m : uptime %s\e[m\n", pid, str);
     free(str);
   } else {
-    printf("\e[90m%d\e[0m : \e[31mdead\e[0m\n", pid);
+    printf("\e[1;36m%d\e[0m : \e[1;31mdead\e[0m\n", pid);
   }
 
   close(fd);
