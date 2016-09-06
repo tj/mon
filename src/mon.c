@@ -66,8 +66,10 @@ static monitor_t monitor;
   do { \
     if (prefix) { \
       printf("mon : %s : " fmt "\n", prefix, ##args); \
+      fflush(stdout); \
     } else { \
       printf("mon : " fmt "\n", ##args); \
+      fflush(stdout); \
     } \
   } while(0)
 
