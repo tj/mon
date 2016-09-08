@@ -93,7 +93,7 @@ hey
 mon : last restart less than one second ago
 mon : 1 attempts remaining
 mon : 3 restarts within less than one second, bailing
-mon : on error `sh test.sh`
+mon : on error `./email.sh`
 emailed failure notice to tobi@ferret-land.com
 mon : bye :)
 ```
