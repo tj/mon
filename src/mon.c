@@ -25,7 +25,7 @@
  * Program version.
  */
 
-#define VERSION "1.2.3"
+#define VERSION "1.2.4"
 
 /*
  * Log prefix.
@@ -41,6 +41,7 @@ typedef struct {
   const char *pidfile;
   const char *mon_pidfile;
   const char *logfile;
+  const char *error_logfile;
   const char *on_error;
   const char *on_restart;
   int64_t last_restart_at;
@@ -196,10 +197,10 @@ show_status_of(const char *pidfile) {
 
   if (alive(pid)) {
     char *str = milliseconds_to_long_string(secs * 1000);
-    printf("\e[90m%d\e[0m : \e[32malive\e[0m : uptime %s\e[m\n", pid, str);
+    printf("\e[1;36m%d\e[0m : \e[1;32malive\e[0m : uptime %s\e[m\n", pid, str);
     free(str);
   } else {
-    printf("\e[90m%d\e[0m : \e[31mdead\e[0m\n", pid);
+    printf("\e[1;36m%d\e[0m : \e[1;31mdead\e[0m\n", pid);
   }
 
   close(fd);
@@ -210,9 +211,14 @@ show_status_of(const char *pidfile) {
  */
 
 void
-redirect_stdio_to(const char *file) {
+redirect_stdio_to(const char *file, const char *error_file) {
   int logfd = open(file, O_WRONLY | O_CREAT | O_APPEND, 0755);
+  int error_logfd = -1;
   int nullfd = open("/dev/null", O_RDONLY, 0);
+
+  if (error_file) {
+    error_logfd = open(error_file, O_WRONLY | O_CREAT | O_APPEND, 0755);
+  }
 
   if (-1 == logfd) {
     perror("open()");
@@ -226,7 +232,14 @@ redirect_stdio_to(const char *file) {
 
   dup2(nullfd, 0);
   dup2(logfd, 1);
-  dup2(logfd, 2);
+
+  if (error_file) {
+    dup2(error_logfd, 2);
+  }
+  else {
+    dup2(logfd, 2);
+  }
+
 }
 
 /*
@@ -402,6 +415,16 @@ on_log(command_t *self) {
 }
 
 /*
+ * --error-log <path>
+ */
+
+static void
+on_error_log(command_t *self) {
+  monitor_t *monitor = (monitor_t *) self->data;
+  monitor->error_logfile = self->arg;
+}
+
+/*
  * --sleep <sec>
  */
 
@@ -501,6 +524,7 @@ main(int argc, char **argv){
   monitor.on_restart = NULL;
   monitor.on_error = NULL;
   monitor.logfile = "mon.log";
+  monitor.error_logfile = NULL;
   monitor.daemon = 0;
   monitor.sleepsec = 1;
   monitor.max_attempts = 10;
@@ -514,6 +538,7 @@ main(int argc, char **argv){
   program.data = &monitor;
   program.usage = "[options] <command>";
   command_option(&program, "-l", "--log <path>", "specify logfile [mon.log]", on_log);
+  command_option(&program, "-e", "--error-log <path>", "specify error logfile [mon.log]", on_error_log);
   command_option(&program, "-s", "--sleep <sec>", "sleep seconds before re-executing [1]", on_sleep);
   command_option(&program, "-S", "--status", "check status of --pidfile", on_status);
   command_option(&program, "-p", "--pidfile <path>", "write pid to <path>", on_pidfile);
@@ -542,7 +567,7 @@ main(int argc, char **argv){
   // daemonize
   if (monitor.daemon) {
     daemonize();
-    redirect_stdio_to(monitor.logfile);
+    redirect_stdio_to(monitor.logfile, monitor.error_logfile);
   }
 
   // write mon pidfile
