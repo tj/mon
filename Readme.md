@@ -10,6 +10,12 @@
 
 ## Installation
 
+With [clib](https://github.com/clibs/clib) do:
+
+```
+$ clib install tj/mon
+```
+
 ```
 $ make install
 ```
