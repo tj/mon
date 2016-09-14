@@ -43,6 +43,7 @@ typedef struct {
   const char *logfile;
   const char *on_error;
   const char *on_restart;
+  const char *on_exit;
   int64_t last_restart_at;
   int64_t clock;
   int daemon;
@@ -230,6 +231,19 @@ redirect_stdio_to(const char *file) {
 }
 
 /*
+ * Invoke the --on-exit command.
+ */
+
+void
+exec_exit_command(monitor_t *monitor, pid_t pid) {
+  char buf[1024] = {0};
+  snprintf(buf, 1024, "%s %d", monitor->on_exit, pid);
+  log("on exit `%s`", buf);
+  int status = system(buf);
+  if (status) log("exit(%d)", status);
+}
+
+/*
  * Graceful exit, signal process group.
  */
 
@@ -242,6 +256,7 @@ graceful_exit(int sig) {
   kill(-pid, sig);
   log("waiting for exit");
   waitpid(read_pidfile(monitor.pidfile), &status, 0);
+  if (monitor.on_exit) exec_exit_command(&monitor, pid);
   log("bye :)");
   exit(0);
 }
@@ -481,6 +496,16 @@ on_error(command_t *self) {
 }
 
 /*
+ * --on-exit <cmd>
+ */
+
+static void
+on_mon_exit(command_t *self) {
+  monitor_t *monitor = (monitor_t *) self->data;
+  monitor->on_exit = self->arg;
+}
+
+/*
  * --attempts <n>
  */
 
@@ -500,6 +525,7 @@ main(int argc, char **argv){
   monitor.mon_pidfile = NULL;
   monitor.on_restart = NULL;
   monitor.on_error = NULL;
+  monitor.on_exit = NULL;
   monitor.logfile = "mon.log";
   monitor.daemon = 0;
   monitor.sleepsec = 1;
@@ -523,6 +549,7 @@ main(int argc, char **argv){
   command_option(&program, "-a", "--attempts <n>", "retry attempts within 60 seconds [10]", on_attempts);
   command_option(&program, "-R", "--on-restart <cmd>", "execute <cmd> on restarts", on_restart);
   command_option(&program, "-E", "--on-error <cmd>", "execute <cmd> on error", on_error);
+  command_option(&program, "-X", "--on-exit <cmd>", "execute <cmd> on monitor exit", on_mon_exit);
   command_parse(&program, argc, argv);
 
   if (monitor.show_status) {
