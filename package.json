@@ -3,7 +3,16 @@
   "version": "1.2.2",
   "repo": "visionmedia/mon",
   "description": "Simple process monitoring",
-  "keywords": ["process", "monitoring", "monitor", "availability"],
+  "keywords": [
+    "process",
+    "monitoring",
+    "monitor",
+    "availability"
+  ],
   "license": "MIT",
-  "install": "make install"
+  "install": "make install",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/visionmedia/mon.git"
+  }
 }
